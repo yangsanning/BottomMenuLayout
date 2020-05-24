@@ -1,2 +1,3 @@
 rootProject.name='BottomMenuLayout'
 include ':app'
+include ':bottommenulayout'

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="menu_item_view_text_normal_color">#999999</color>
+    <color name="menu_item_view_text_selected_color">#ff0000</color>
+
+    <color name="menu_item_view_text_msg_color">#ffffff</color>
+</resources>

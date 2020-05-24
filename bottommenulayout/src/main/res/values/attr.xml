@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MenuItemView">
+        <!--默认图标-->
+        <attr name="miv_icon_normal" format="reference"/>
+        <!--选中图标-->
+        <attr name="miv_icon_selected" format="reference"/>
+        <!--图标的宽-->
+        <attr name="miv_icon_width" format="dimension"/>
+        <!--图标的高-->
+        <attr name="miv_icon_height" format="dimension"/>
+
+        <!--文本-->
+        <attr name="miv_text" format="string"/>
+        <!--文本字体大小-->
+        <attr name="miv_text_size" format="dimension"/>
+        <!--文本默认颜色-->
+        <attr name="miv_text_color_normal" format="color"/>
+        <!--文本的选中颜色-->
+        <attr name="miv_text_color_selected" format="color"/>
+
+        <!--最大显示未读数-->
+        <attr name="miv_max_unread_num" format="integer"/>
+        <!--未读数字体大小-->
+        <attr name="miv_unread_text_size" format="dimension"/>
+        <!--未读数字体颜色-->
+        <attr name="miv_unread_text_color" format="reference"/>
+        <!--未读数字体背景-->
+        <attr name="miv_unread_text_bg" format="reference"/>
+
+        <!--提示消息默认字体大小-->
+        <attr name="miv_msg_text_size" format="dimension"/>
+        <!--提示消息文字颜色-->
+        <attr name="miv_msg_text_color" format="reference"/>
+        <!--提示消息文字背景-->
+        <attr name="miv_msg_text_bg" format="reference"/>
+        <!--小红点背景-->
+        <attr name="miv_msg_point_bg" format="reference"/>
+
+        <!--是否启用点击效果-->
+        <attr name="miv_enabled_click_drawable" format="boolean"/>
+        <!--点击效果-->
+        <attr name="miv_click_drawable" format="reference"/>
+
+        <!--文字和图标的距离-->
+        <attr name="miv_item_margin_top" format="dimension"/>
+        <!--item 的 padding-->
+        <attr name="miv_item_padding" format="dimension"/>
+    </declare-styleable>
+
+    <declare-styleable name="BottomMenuLayout">
+        <attr name="bml_smooth_scroll" format="boolean"/>
+    </declare-styleable>
+</resources>
