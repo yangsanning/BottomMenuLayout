@@ -8,12 +8,14 @@ ext {
     ]
 
     dependVersion = [
-            support_version: "28.0.0",
+            appcompat       : "1.1.0",
+            viewpager2      : "1.0.0",
     ]
 
-    supportLib = [
-            v7          : "com.android.support:appcompat-v7:$dependVersion.support_version",
+    baseLib = [
+            appcompat       : "androidx.appcompat:appcompat:$dependVersion.appcompat",
+            viewpager2      : "androidx.viewpager2:viewpager2:$dependVersion.viewpager2",
     ]
 
-    supportLibs = supportLib.values()
+    baseLibs = baseLib.values()
 }

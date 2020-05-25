@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,18 +20,41 @@ import java.util.List;
  * @Description 一句话概括作用
  * @Date 2020/5/24
  */
-public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageChangeListener {
+public class BottomMenuLayout extends LinearLayout {
 
     private static final String BUNDLE_INSTANCE = "BUNDLE_INSTANCE";
     private static final String BUNDLE_CURRENT_POSITION = "BUNDLE_CURRENT_POSITION";
 
+    private Bind bind = Bind.NONE;
     private int currentPosition;
     private boolean smoothScroll;
     private List<MenuItemView> menuItemViewList = new ArrayList<>();
 
     private OnMenuItemSelectedListener onMenuItemSelectedListener;
+    private ViewPager.OnPageChangeListener onPageChangeListener = new ViewPager.OnPageChangeListener() {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-    private ViewPager viewPager;
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            resetCurrentItem();
+            menuItemViewList.get(position).refreshItem(true);
+            if (onMenuItemSelectedListener != null) {
+                onMenuItemSelectedListener.onItemSelected(getMenuItem(position), currentPosition, position);
+            }
+            currentPosition = position;
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
+    };
+
+    private ViewPager viewPager1;
+    private ViewPager2 viewPager2;
 
     public BottomMenuLayout(Context context) {
         this(context, null);
@@ -55,8 +79,15 @@ public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageCh
         initView();
     }
 
-    public void setViewPager(ViewPager viewPager) {
-        this.viewPager = viewPager;
+    public void setViewPager1(ViewPager viewPager1) {
+        this.bind = Bind.VIEW_PAGE_1;
+        this.viewPager1 = viewPager1;
+        initView();
+    }
+
+    public void setViewPager2(ViewPager2 viewPager2) {
+        this.bind = Bind.VIEW_PAGE_2;
+        this.viewPager2 = viewPager2;
         initView();
     }
 
@@ -67,17 +98,13 @@ public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageCh
             return;
         }
 
-        if (viewPager != null) {
-            if (viewPager.getAdapter().getCount() != childCount) {
-                throw new IllegalArgumentException("BottomMenuLayout Item 个数 于 ViewPager 子数量不一致");
-            }
-        }
+        // 检查个数是否一致
+        checkCount(childCount);
 
         for (int i = 0; i < childCount; i++) {
             if (getChildAt(i) instanceof MenuItemView) {
                 MenuItemView menuItemView = (MenuItemView) getChildAt(i);
                 menuItemViewList.add(menuItemView);
-                // 设置点击监听
                 menuItemView.setOnClickListener(new MenuItemOnClickListener(i));
             } else {
                 throw new IllegalArgumentException("BottomMenuLayout 的子 View 必须是 MenuItemView");
@@ -88,8 +115,44 @@ public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageCh
             menuItemViewList.get(currentPosition).refreshItem(true);
         }
 
-        if (viewPager != null) {
-            viewPager.addOnPageChangeListener(this);
+        addOnPageChangeListener();
+    }
+
+    private void addOnPageChangeListener() {
+        switch (bind) {
+            case VIEW_PAGE_1:
+                viewPager1.addOnPageChangeListener(onPageChangeListener);
+                break;
+            case VIEW_PAGE_2:
+                viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                    @Override
+                    public void onPageSelected(int position) {
+                        onPageChangeListener.onPageSelected(position);
+                    }
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
+     * 检查个数是否一致
+     */
+    private void checkCount(int childCount) {
+        switch (bind) {
+            case VIEW_PAGE_1:
+                if (viewPager1.getAdapter().getCount() != childCount) {
+                    throw new IllegalArgumentException("BottomMenuLayout Item 个数 于 ViewPager 子数量不一致");
+                }
+                break;
+            case VIEW_PAGE_2:
+                if (viewPager2.getAdapter().getItemCount() != childCount) {
+                    throw new IllegalArgumentException("BottomMenuLayout Item 个数 于 ViewPager2 子数量不一致");
+                }
+                break;
+            default:
+                break;
         }
     }
 
@@ -118,26 +181,6 @@ public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageCh
         }
     }
 
-    @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-    }
-
-    @Override
-    public void onPageSelected(int position) {
-        resetCurrentItem();
-        menuItemViewList.get(position).refreshItem(true);
-        if (onMenuItemSelectedListener != null) {
-            onMenuItemSelectedListener.onItemSelected(getMenuItem(position), currentPosition, position);
-        }
-        currentPosition = position;
-    }
-
-    @Override
-    public void onPageScrollStateChanged(int state) {
-
-    }
-
     private class MenuItemOnClickListener implements OnClickListener {
 
         private int thisPosition;
@@ -148,20 +191,33 @@ public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageCh
 
         @Override
         public void onClick(View v) {
-            if (viewPager != null) {
-                if (thisPosition == currentPosition) {
-                    // 重复点击, 使用 setCurrentItem 不会回调 onPageSelected(), 所以在此处需要回调点击监听
+            switch (bind) {
+                case VIEW_PAGE_1:
+                    if (thisPosition == currentPosition) {
+                        // 重复点击, 使用 setCurrentItem 不会回调 onPageSelected(), 所以在此处需要回调点击监听
+                        if (onMenuItemSelectedListener != null) {
+                            onMenuItemSelectedListener.onItemSelected(getMenuItem(thisPosition), currentPosition, thisPosition);
+                        }
+                    } else {
+                        viewPager1.setCurrentItem(thisPosition, smoothScroll);
+                    }
+                    break;
+                case VIEW_PAGE_2:
+                    if (thisPosition == currentPosition) {
+                        // 重复点击, 使用 setCurrentItem 不会回调 onPageSelected(), 所以在此处需要回调点击监听
+                        if (onMenuItemSelectedListener != null) {
+                            onMenuItemSelectedListener.onItemSelected(getMenuItem(thisPosition), currentPosition, thisPosition);
+                        }
+                    } else {
+                        viewPager2.setCurrentItem(thisPosition, smoothScroll);
+                    }
+                    break;
+                default:
                     if (onMenuItemSelectedListener != null) {
                         onMenuItemSelectedListener.onItemSelected(getMenuItem(thisPosition), currentPosition, thisPosition);
                     }
-                } else {
-                    viewPager.setCurrentItem(thisPosition, smoothScroll);
-                }
-            } else {
-                if (onMenuItemSelectedListener != null) {
-                    onMenuItemSelectedListener.onItemSelected(getMenuItem(thisPosition), currentPosition, thisPosition);
-                }
-                selectItem(thisPosition);
+                    selectItem(thisPosition);
+                    break;
             }
         }
     }
@@ -188,8 +244,8 @@ public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageCh
      * 设置当前选中
      */
     public void setCurrentPosition(int currentPosition) {
-        if (viewPager != null) {
-            viewPager.setCurrentItem(currentPosition, smoothScroll);
+        if (viewPager1 != null) {
+            viewPager1.setCurrentItem(currentPosition, smoothScroll);
         } else {
             if (onMenuItemSelectedListener != null) {
                 onMenuItemSelectedListener.onItemSelected(getMenuItem(currentPosition), this.currentPosition, currentPosition);
@@ -288,5 +344,23 @@ public class BottomMenuLayout extends LinearLayout implements ViewPager.OnPageCh
          * @param currentPosition  当前选中
          */
         void onItemSelected(MenuItemView menuItemView, int previousPosition, int currentPosition);
+    }
+
+    private enum Bind {
+
+        /**
+         * 无绑定
+         */
+        NONE,
+
+        /**
+         * 绑定ViewPage1
+         */
+        VIEW_PAGE_1,
+
+        /**
+         * 绑定ViewPage2
+         */
+        VIEW_PAGE_2,
     }
 }
